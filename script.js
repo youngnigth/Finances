@@ -1,144 +1,192 @@
-        var grafica;
+// ===== FORMAT HELPERS =====
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
 
-        // Función para formatear campo de texto como moneda al perder foco
-        function formatCurrency(input) {
-            var value = input.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.');
-            input.value = parseFloat(value).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+function formatCurrency(input) {
+  const value = parseFloat(input.value.replace(/[^0-9.-]+/g, ""));
+  if (!isNaN(value)) input.value = currencyFormatter.format(value);
+}
+
+function clearCurrencyFormat(input) {
+  input.value = input.value.replace(/[^0-9.-]+/g, "");
+}
+
+function formatPercentage(input) {
+  const value = parseFloat(input.value.replace(/[^0-9.-]+/g, ""));
+  if (!isNaN(value)) input.value = value.toFixed(2);
+}
+
+function clearPercentageFormat(input) {
+  input.value = input.value.replace(/[^0-9.-]+/g, "");
+}
+
+function getNumber(id) {
+  const value = document.getElementById(id).value;
+  return parseFloat(value.replace(/[^0-9.-]+/g, ""));
+}
+
+// ===== CHART DATA STORAGE =====
+let chartDataSets = [];
+let chartInstance;
+
+// Replace or insert chart data
+function upsertChartData(label, data, color) {
+  const index = chartDataSets.findIndex(set => set.label === label);
+  if (index >= 0) {
+    chartDataSets[index].data = data;
+  } else {
+    chartDataSets.push({
+      label,
+      backgroundColor: color,
+      data
+    });
+  }
+}
+
+// Render comparison chart
+function renderChartComparison() {
+  const ctx = document.getElementById("graficaResultados").getContext("2d");
+
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["Ganancia", "Valor Total"],
+      datasets: chartDataSets
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "top" }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: value => "$" + value.toLocaleString()
+          }
         }
+      }
+    }
+  });
 
-        // Función para borrar formato al enfocar campo de texto
-        function clearCurrencyFormat(input) {
-            input.value = input.value.replace(/[^0-9.,]/g, '');
-        }
+  document.querySelector(".grafica").style.display = "block";
 
-        // Función para formatear campo de texto como porcentaje al perder foco
-        function formatPercentage(input) {
-            var value = input.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.');
-            input.value = parseFloat(value).toFixed(2) + '%';
-        }
+  // 👉 Update comparison data section
+  const comparacion = document.getElementById("comparacionDatos");
+  comparacion.innerHTML = ""; // Clear existing cards
 
-        // Función para borrar formato de porcentaje al enfocar campo de texto
-        function clearPercentageFormat(input) {
-            input.value = input.value.replace(/[^0-9.,]/g, '');
-        }
+  chartDataSets.forEach(set => {
+    const [ganancia, total] = set.data;
+    const card = document.createElement("div");
+    card.className = "comparacion-card";
+    card.innerHTML = `
+      <h4>${set.label}</h4>
+      <p>💰 Ganancia: ${currencyFormatter.format(ganancia)}</p>
+      <p>📦 Valor Total: ${currencyFormatter.format(total)}</p>
+    `;
+    comparacion.appendChild(card);
+  });
+}
 
-        // Función para calcular interés compuesto
-        function calcularInteres() {
-            var principal = parseFloat(document.getElementById('principal1').value.replace(/[^0-9.]/g, ''));
-            var contribucion = parseFloat(document.getElementById('contribucion1').value.replace(/[^0-9.]/g, ''));
-            var tasaInteres = parseFloat(document.getElementById('tasaInteres1').value.replace(/[^0-9.]/g, '')) / 100;
-            var periodoAnios = parseInt(document.getElementById('periodoAnios1').value);
+// ===== COMPOUND INTEREST CALCULATOR =====
+function calcularInteres() {
+  const principal = getNumber("principal1");
+  const monthly = getNumber("contribucion1");
+  const rate = getNumber("tasaInteres1") / 100;
+  const years = getNumber("periodoAnios1");
 
-            var montoTotal = principal;
-            for (var i = 0; i < periodoAnios; i++) {
-                montoTotal += contribucion * 12;
-                montoTotal *= 1 + tasaInteres;
-            }
+  if ([principal, monthly, rate, years].some(isNaN)) {
+    alert("Por favor completa todos los campos.");
+    return;
+  }
 
-            var interesGanado = montoTotal - principal - (contribucion * 12 * periodoAnios);
-            document.getElementById('resultadoInteres1').innerText = 'Interés ganado: ' + interesGanado.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-            document.getElementById('resultadoTotal1').innerText = 'Monto total: ' + montoTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  const months = years * 12;
+  let total = principal;
+  for (let i = 0; i < months; i++) {
+    total = (total + monthly) * (1 + rate / 12);
+  }
 
-            document.getElementById('reporteInteres1').innerText = document.getElementById('resultadoInteres1').innerText;
-            document.getElementById('reporteTotal1').innerText = document.getElementById('resultadoTotal1').innerText;
+  const interest = total - (principal + monthly * months);
 
-            actualizarGrafica(principal + (contribucion * 12 * periodoAnios), montoTotal, 'Calculadora 1');
-        }
+  document.getElementById("resultadoInteres1").textContent = `Interés ganado: ${currencyFormatter.format(interest)}`;
+  document.getElementById("resultadoTotal1").textContent = `Valor total: ${currencyFormatter.format(total)}`;
+  document.getElementById("reporteInteres1").textContent = `Interés ganado: ${currencyFormatter.format(interest)}`;
+  document.getElementById("reporteTotal1").textContent = `Valor total: ${currencyFormatter.format(total)}`;
 
-        // Función para calcular valor futuro de acciones
-        function calcularValorFuturoAcciones() {
-            var inversionInicial = parseFloat(document.getElementById('inversionInicial').value.replace(/[^0-9.]/g, ''));
-            var precioInicial = parseFloat(document.getElementById('precioInicial').value.replace(/[^0-9.]/g, ''));
-            var precioFinal = parseFloat(document.getElementById('precioFinal').value.replace(/[^0-9.]/g, ''));
+  upsertChartData("Interés Compuesto", [interest, total], "#4f46e5");
+  renderChartComparison();
+}
 
-            var numeroAcciones = inversionInicial / precioInicial;
-            var valorFuturo = numeroAcciones * precioFinal;
-            var apreciacion = valorFuturo - inversionInicial;
-            var porcentajeApreciacion = (apreciacion / inversionInicial) * 100;
+// ===== STOCK CALCULATORS =====
+function calcularValorFuturoAcciones() {
+  calcularStock({
+    inversionId: "inversionInicial",
+    precioInicioId: "precioInicial",
+    precioFinalId: "precioFinal",
+    ids: {
+      val: "resultadoValorFuturo",
+      app: "resultadoApreciacion",
+      num: "resultadoNumeroAcciones",
+      por: "resultadoPorcentaje",
+      repVal: "reporteValorFuturo",
+      repApp: "reporteApreciacion",
+      repNum: "reporteNumeroAcciones",
+      repPor: "reportePorcentaje"
+    },
+    label: "Acciones 1",
+    color: "#10b981"
+  });
+}
 
-            document.getElementById('resultadoValorFuturo').innerText = 'Valor futuro: ' + valorFuturo.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-            document.getElementById('resultadoApreciacion').innerText = 'Apreciación: ' + apreciacion.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-            document.getElementById('resultadoNumeroAcciones').innerText = 'Número de acciones: ' + numeroAcciones.toLocaleString('en-US');
-            document.getElementById('resultadoPorcentaje').innerText = 'Porcentaje de apreciación: ' + porcentajeApreciacion.toFixed(2) + '%';
+function calcularValorFuturoAcciones3() {
+  calcularStock({
+    inversionId: "inversionInicial3",
+    precioInicioId: "precioInicial3",
+    precioFinalId: "precioFinal3",
+    ids: {
+      val: "resultadoValorFuturo3",
+      app: "resultadoApreciacion3",
+      num: "resultadoNumeroAcciones3",
+      por: "resultadoPorcentaje3",
+      repVal: "reporteValorFuturo3",
+      repApp: "reporteApreciacion3",
+      repNum: "reporteNumeroAcciones3",
+      repPor: "reportePorcentaje3"
+    },
+    label: "Acciones 2",
+    color: "#3b82f6"
+  });
+}
 
-            document.getElementById('reporteValorFuturo').innerText = document.getElementById('resultadoValorFuturo').innerText;
-            document.getElementById('reporteApreciacion').innerText = document.getElementById('resultadoApreciacion').innerText;
-            document.getElementById('reporteNumeroAcciones').innerText = document.getElementById('resultadoNumeroAcciones').innerText;
-            document.getElementById('reportePorcentaje').innerText = document.getElementById('resultadoPorcentaje').innerText;
+function calcularStock({ inversionId, precioInicioId, precioFinalId, ids, label, color }) {
+  const inversion = getNumber(inversionId);
+  const precioInicio = getNumber(precioInicioId);
+  const precioFinal = getNumber(precioFinalId);
 
-            actualizarGrafica(inversionInicial, valorFuturo, 'Calculadora 2');
-        }
+  if ([inversion, precioInicio, precioFinal].some(isNaN)) {
+    alert("Completa todos los campos de la calculadora de acciones.");
+    return;
+  }
 
-        // Función para calcular valor futuro de acciones en la tercera calculadora
-        function calcularValorFuturoAcciones3() {
-            var inversionInicial3 = parseFloat(document.getElementById('inversionInicial3').value.replace(/[^0-9.]/g, ''));
-            var precioInicial3 = parseFloat(document.getElementById('precioInicial3').value.replace(/[^0-9.]/g, ''));
-            var precioFinal3 = parseFloat(document.getElementById('precioFinal3').value.replace(/[^0-9.]/g, ''));
+  const numAcciones = inversion / precioInicio;
+  const valorFuturo = numAcciones * precioFinal;
+  const ganancia = valorFuturo - inversion;
+  const porcentaje = (ganancia / inversion) * 100;
 
-            var numeroAcciones3 = inversionInicial3 / precioInicial3;
-            var valorFuturo3 = numeroAcciones3 * precioFinal3;
-            var apreciacion3 = valorFuturo3 - inversionInicial3;
-            var porcentajeApreciacion3 = (apreciacion3 / inversionInicial3) * 100;
+  document.getElementById(ids.val).textContent = `Valor futuro: ${currencyFormatter.format(valorFuturo)}`;
+  document.getElementById(ids.app).textContent = `Ganancia: ${currencyFormatter.format(ganancia)}`;
+  document.getElementById(ids.num).textContent = `Número de acciones: ${numAcciones.toFixed(2)}`;
+  document.getElementById(ids.por).textContent = `Ganancia %: ${porcentaje.toFixed(2)}%`;
 
-            document.getElementById('resultadoValorFuturo3').innerText = 'Valor futuro: ' + valorFuturo3.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-            document.getElementById('resultadoApreciacion3').innerText = 'Apreciación: ' + apreciacion3.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-            document.getElementById('resultadoNumeroAcciones3').innerText = 'Número de acciones: ' + numeroAcciones3.toLocaleString('en-US');
-            document.getElementById('resultadoPorcentaje3').innerText = 'Porcentaje de apreciación: ' + porcentajeApreciacion3.toFixed(2) + '%';
+  document.getElementById(ids.repVal).textContent = `Valor futuro: ${currencyFormatter.format(valorFuturo)}`;
+  document.getElementById(ids.repApp).textContent = `Ganancia: ${currencyFormatter.format(ganancia)}`;
+  document.getElementById(ids.repNum).textContent = `Número de acciones: ${numAcciones.toFixed(2)}`;
+  document.getElementById(ids.repPor).textContent = `Ganancia %: ${porcentaje.toFixed(2)}%`;
 
-            document.getElementById('reporteValorFuturo3').innerText = document.getElementById('resultadoValorFuturo3').innerText;
-            document.getElementById('reporteApreciacion3').innerText = document.getElementById('resultadoApreciacion3').innerText;
-            document.getElementById('reporteNumeroAcciones3').innerText = document.getElementById('resultadoNumeroAcciones3').innerText;
-            document.getElementById('reportePorcentaje3').innerText = document.getElementById('resultadoPorcentaje3').innerText;
-
-            actualizarGrafica(inversionInicial3, valorFuturo3, 'Calculadora 3');
-        }
-
-        // Función para actualizar gráfica
-        function actualizarGrafica(inicial, final, tipoCalculadora) {
-            if (grafica) {
-                grafica.destroy();
-            }
-
-            var ctx = document.getElementById('graficaResultados').getContext('2d');
-            grafica = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Inicial', 'Final'],
-                    datasets: [{
-                        label: tipoCalculadora,
-                        data: [inicial, final],
-                        backgroundColor: [
-                            'rgba(75, 192, 192, 0.2)',
-                            'rgba(153, 102, 255, 0.2)'
-                        ],
-                        borderColor: [
-                            'rgba(75, 192, 192, 1)',
-                            'rgba(153, 102, 255, 1)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-
-        // Función para mostrar gráfica de interés compuesto
-        function mostrarGraficaInteres() {
-            calcularInteres();
-        }
-
-        // Función para mostrar gráfica de valor futuro de acciones
-        function mostrarGraficaValorFuturo() {
-            calcularValorFuturoAcciones();
-        }
-
-        // Función para mostrar gráfica de valor futuro de acciones en la tercera calculadora
-        function mostrarGraficaValorFuturo3() {
-            calcularValorFuturoAcciones3();
-        }
+  upsertChartData(label, [ganancia, valorFuturo], color);
+  renderChartComparison();
+}

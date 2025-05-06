@@ -1,147 +1,127 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HYSA</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HYSA – Calculadora Financiera</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="calculator">
-            <h1>Compound Interest </h1>
-            <form onsubmit="return false;">
-                <label for="principal1">Monto inicial (principal):</label>
-                <div class="input-container">
-                    <input type="text" id="principal1" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required>
-                    <span>$</span>
-                </div>
-                
-                <label for="contribucion1">Contribución mensual:</label>
-                <div class="input-container">
-                    <input type="text" id="contribucion1" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required>
-                    <span>$</span>
-                </div>
-                
-                <label for="tasaInteres1">Tasa de interés anual (%):</label>
-                <div class="input-container">
-                    <input type="text" id="tasaInteres1" onfocusout="formatPercentage(this)" onfocus="clearPercentageFormat(this)" required>
-                    <span>%</span>
-                </div>
-                
-                <label for="periodoAnios1">Período de inversión (años):</label>
-                <div class="input-container">
-                    <input type="number" id="periodoAnios1" required>
-                    <span>años</span>
-                </div>
-                
-                <button type="button" onclick="calcularInteres()">Calcular Interés</button>
-                
-                <div id="resultados1" class="resultados">
-                    <p id="resultadoInteres1"></p>
-                    <p id="resultadoTotal1"></p>
-                </div>
-            </form>
+  <div class="container">
+    <!-- Calculadora 1 -->
+    <div class="calculator">
+      <h1>📈 Interés Compuesto</h1>
+      <form onsubmit="return false;">
+        <label>Monto inicial:</label>
+        <div class="input-container">
+          <input type="text" id="principal1" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required />
+          <span>$</span>
         </div>
-
-        <div class="calculator">
-            <h1>Stock Value</h1>
-            <form onsubmit="return false;">
-                <label for="inversionInicial">Inversión inicial:</label>
-                <div class="input-container">
-                    <input type="text" id="inversionInicial" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required>
-                    <span>$</span>
-                </div>
-                
-                <label for="precioInicial">Precio inicial por acción:</label>
-                <div class="input-container">
-                    <input type="text" id="precioInicial" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required>
-                    <span>$</span>
-                </div>
-                
-                <label for="precioFinal">Precio final por acción:</label>
-                <div class="input-container">
-                    <input type="text" id="precioFinal" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required>
-                    <span>$</span>
-                </div>
-                
-                <button type="button" onclick="calcularValorFuturoAcciones()">Calcular Valor Futuro</button>
-                
-                <div id="resultados2" class="resultados">
-                    <p id="resultadoValorFuturo"></p>
-                    <p id="resultadoApreciacion"></p>
-                    <p id="resultadoNumeroAcciones"></p>
-                    <p id="resultadoPorcentaje"></p>
-                </div>
-            </form>
+        <label>Contribución mensual:</label>
+        <div class="input-container">
+          <input type="text" id="contribucion1" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required />
+          <span>$</span>
         </div>
-
-        <div class="calculator">
-            <h1>Stock Value</h1>
-            <form onsubmit="return false;">
-                <label for="inversionInicial3">Inversión inicial:</label>
-                <div class="input-container">
-                    <input type="text" id="inversionInicial3" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required>
-                    <span>$</span>
-                </div>
-                
-                <label for="precioInicial3">Precio inicial por acción:</label>
-                <div class="input-container">
-                    <input type="text" id="precioInicial3" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required>
-                    <span>$</span>
-                </div>
-                
-                <label for="precioFinal3">Precio final por acción:</label>
-                <div class="input-container">
-                    <input type="text" id="precioFinal3" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required>
-                    <span>$</span>
-                </div>
-                
-                <button type="button" onclick="calcularValorFuturoAcciones3()">Calcular Valor Futuro</button>
-                
-                <div id="resultados3" class="resultados">
-                    <p id="resultadoValorFuturo3"></p>
-                    <p id="resultadoApreciacion3"></p>
-                    <p id="resultadoNumeroAcciones3"></p>
-                    <p id="resultadoPorcentaje3"></p>
-                </div>
-            </form>
+        <label>Tasa de interés anual (%):</label>
+        <div class="input-container">
+          <input type="text" id="tasaInteres1" onfocusout="formatPercentage(this)" onfocus="clearPercentageFormat(this)" required />
+          <span>%</span>
         </div>
-
-        <div class="reporte">
-            <h2>Reporte Combinado</h2>
-            <div id="reporteCalculadora1">
-                <p><strong>Calculadora 1 - Interés Compuesto:</strong></p>
-                <p id="reporteInteres1"></p>
-                <p id="reporteTotal1"></p>
-            </div>
-            <div id="reporteCalculadora2">
-                <p><strong>Calculadora 2 - Valor Futuro de Acciones:</strong></p>
-                <p id="reporteValorFuturo"></p>
-                <p id="reporteApreciacion"></p>
-                <p id="reporteNumeroAcciones"></p>
-                <p id="reportePorcentaje"></p>
-            </div>
-            <div id="reporteCalculadora3">
-                <p><strong>Calculadora 3 - Otra Calculadora de Acciones:</strong></p>
-                <p id="reporteValorFuturo3"></p>
-                <p id="reporteApreciacion3"></p>
-                <p id="reporteNumeroAcciones3"></p>
-                <p id="reportePorcentaje3"></p>
-            </div>
-
-            <!-- Botones para alternar la gráfica -->
-            <button onclick="mostrarGraficaInteres()">Mostrar Gráfica de Interés Compuesto</button>
-            <button onclick="mostrarGraficaValorFuturo()">Mostrar Gráfica de Valor Futuro de Acciones</button>
-            <button onclick="mostrarGraficaValorFuturo3()">Mostrar Gráfica de Otra Calculadora de Acciones</button>
-
-            <!-- Canvas para la gráfica -->
-            <canvas id="graficaResultados" class="grafica" width="400" height="300"></canvas>
+        <label>Período de inversión (años):</label>
+        <div class="input-container">
+          <input type="number" id="periodoAnios1" required />
+          <span>años</span>
         </div>
+        <button onclick="calcularInteres()">Calcular Interés</button>
+        <div class="resultados">
+          <p id="resultadoInteres1"></p>
+          <p id="resultadoTotal1"></p>
+        </div>
+      </form>
     </div>
-
-    <script src="script.js"></script>
+    <!-- Calculadora 2 -->
+    <div class="calculator">
+      <h1>📉 Valor Acciones</h1>
+      <form onsubmit="return false;">
+        <label>Inversión inicial:</label>
+        <div class="input-container">
+          <input type="text" id="inversionInicial" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required />
+          <span>$</span>
+        </div>
+        <label>Precio inicial por acción:</label>
+        <div class="input-container">
+          <input type="text" id="precioInicial" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required />
+          <span>$</span>
+        </div>
+        <label>Precio final por acción:</label>
+        <div class="input-container">
+          <input type="text" id="precioFinal" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required />
+          <span>$</span>
+        </div>
+        <button onclick="calcularValorFuturoAcciones()">Calcular Valor Futuro</button>
+        <div class="resultados">
+          <p id="resultadoValorFuturo"></p>
+          <p id="resultadoApreciacion"></p>
+          <p id="resultadoNumeroAcciones"></p>
+          <p id="resultadoPorcentaje"></p>
+        </div>
+      </form>
+    </div>
+    <!-- Calculadora 3 -->
+    <div class="calculator">
+      <h1>📊 Otra Acción</h1>
+      <form onsubmit="return false;">
+        <label>Inversión inicial:</label>
+        <div class="input-container">
+          <input type="text" id="inversionInicial3" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required />
+          <span>$</span>
+        </div>
+        <label>Precio inicial por acción:</label>
+        <div class="input-container">
+          <input type="text" id="precioInicial3" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required />
+          <span>$</span>
+        </div>
+        <label>Precio final por acción:</label>
+        <div class="input-container">
+          <input type="text" id="precioFinal3" onfocusout="formatCurrency(this)" onfocus="clearCurrencyFormat(this)" required />
+          <span>$</span>
+        </div>
+        <button onclick="calcularValorFuturoAcciones3()">Calcular Valor Futuro</button>
+        <div class="resultados">
+          <p id="resultadoValorFuturo3"></p>
+          <p id="resultadoApreciacion3"></p>
+          <p id="resultadoNumeroAcciones3"></p>
+          <p id="resultadoPorcentaje3"></p>
+        </div>
+      </form>
+    </div>
+    <!-- Reporte -->
+   <div class="reporte">
+     <h2>📋 Reporte Combinado</h2>
+      <div class="report-card">
+        <h3>📈 Interés Compuesto</h3>
+        <p id="reporteInteres1"></p>
+        <p id="reporteTotal1"></p>
+      </div>
+      <div class="report-card">
+        <h3>📉 Valor Futuro de Acciones</h3>
+        <p id="reporteValorFuturo"></p>
+        <p id="reporteApreciacion"></p>
+        <p id="reporteNumeroAcciones"></p>
+        <p id="reportePorcentaje"></p>
+      </div>
+      <div class="report-card">
+        <h3>📊 Otra Calculadora</h3>
+        <p id="reporteValorFuturo3"></p>
+        <p id="reporteApreciacion3"></p>
+        <p id="reporteNumeroAcciones3"></p>
+        <p id="reportePorcentaje3"></p>
+      </div> 
+      <canvas id="graficaResultados" class="grafica" width="400" height="300"></canvas>
+      <div id="comparacionDatos" class="comparacion-container"></div>
+    </div>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>
